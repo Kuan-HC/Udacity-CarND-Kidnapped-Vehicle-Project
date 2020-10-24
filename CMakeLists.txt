@@ -10,7 +10,8 @@ set(CMAKE_CXX_FLAGS "${CXX_FLAGS}")
 file(GLOB HEADERS src/*.h)
 file(GLOB HEADERS_HPP src/*.hpp)
 
-set(sources src/particle_filter.cpp src/main.cpp ${HEADERS} ${HEADERS_HPP})
+#set(sources src/particle_filter.cpp src/main.cpp ${HEADERS} ${HEADERS_HPP})
+set(sources src/particle_filter.cpp src/unit_test.cpp src/particle_filter.h)
 
 
 
@@ -25,8 +26,9 @@ link_directories(/usr/local/Cellar/libuv/1*/lib)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin") 
 
 
-add_executable(particle_filter ${sources})
+#add_executable(particle_filter ${sources})
+add_executable(a ${sources})
 
 
-target_link_libraries(particle_filter z ssl uv uWS)
+#target_link_libraries(particle_filter z ssl uv uWS)
 
