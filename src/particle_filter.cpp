@@ -34,15 +34,14 @@ void ParticleFilter::init(const double &x, const double &y, const double &theta,
    * NOTE: Consult particle_filter.h for more information about this method 
    *   (and others in this file).
    */
+
   num_particles = value; // DONE: Set the number of particles
 
   /* create particles */
   for (int i = 0; i < num_particles; ++i)
-  {
-    Particle temp{i, gaussRandom(x, std[0]), gaussRandom(y, std[1]), gaussRandom(theta, std[2]), 1};
-    particles.emplace_back(temp);
+  { 
+    particles.emplace_back(Particle{i, gaussRandom(x, std[0]), gaussRandom(y, std[1]), gaussRandom(theta, std[2]), 1});
   }
-
   is_initialized = true;
 }
 
@@ -154,11 +153,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     {
       double transed_x = particle_i.x + tmp_cos_theta * observ_i.x - tmp_sin_theta * observ_i.y;
       double transed_y = particle_i.y + tmp_sin_theta * observ_i.x + tmp_cos_theta * observ_i.y;
-      LandmarkObs tmp_transed;
-      tmp_transed.id = -1; // set id to -1 for better readability in assiciation step
-      tmp_transed.x = transed_x;
-      tmp_transed.y = transed_y;
-      transed_observ.emplace_back(tmp_transed);
+      
+      transed_observ.emplace_back(LandmarkObs{-1,transed_x,transed_y});
     }
     // End of Step 2
 
@@ -170,14 +166,15 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     double gauss_norm = 1 / (2 * M_PI * std_landmark[0] * std_landmark[1]);
     for (const auto &t_observ_i : transed_observ)
     {
-      double exponent = pow(t_observ_i.x - map_landmarks.landmark_list[t_observ_i.id].x_f, 2) / (2 * pow(std_landmark[0], 2)) + pow(t_observ_i.y - map_landmarks.landmark_list[t_observ_i.id].y_f, 2) / (2 * pow(std_landmark[1], 2));
+      double exponent = pow(t_observ_i.x - map_landmarks.landmark_list[t_observ_i.id].x_f, 2) / (2 * pow(std_landmark[0], 2))
+                      + pow(t_observ_i.y - map_landmarks.landmark_list[t_observ_i.id].y_f, 2) / (2 * pow(std_landmark[1], 2));
       double weight = gauss_norm * exp(-exponent);
       particle_i.weight *= weight;
     }
     // End of Step 4
 
     // step 5 Update Weight
-    weights.emplace_back(particle_i.weight);
+    weights.push_back(particle_i.weight);
     // End of Step 5
   }
 }
@@ -185,20 +182,20 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 void ParticleFilter::resample()
 {
   /**
-   * TODO: Resample particles with replacement with probability proportional 
+   * DONE: Resample particles with replacement with probability proportional 
    *   to their weight. 
    * NOTE: You may find std::discrete_distribution helpful here.
    *   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
    */
-  /* resample wheel */
+  /* resample base on http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution*/
   std::vector<Particle> resampled_particles;
   std::random_device rd;
-  std::mt19937 gen_2(rd());
+  std::mt19937 gen(rd());
   std::discrete_distribution<> rand(weights.begin(), weights.end());
 
   for (int i = 0; i < num_particles; ++i)
   {
-    int index = rand(gen_2);
+    int index = rand(gen);
     resampled_particles.emplace_back(particles[index]);
   }
   particles = resampled_particles;

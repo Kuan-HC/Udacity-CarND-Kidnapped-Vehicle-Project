@@ -83,7 +83,7 @@ int main()
     ParticleFilter pf;
 
     //initialize particle
-    pf.init(4.0, 5.0, -M_PI / 2, sigma_pos, 10);
+    pf.init(4.0, 5.0, -M_PI / 2, sigma_pos, 5);
 
     /* move yaw rate 0*/
     pf.prediction(0.1, sigma_pos, 0.2, 0.0);
@@ -99,9 +99,9 @@ int main()
 
     std::vector<LandmarkObs> noisy_observations;
 
-    noisy_observations.push_back(LandmarkObs{1, 2, 2});
-    noisy_observations.push_back(LandmarkObs{2, 3, -2});
-    noisy_observations.push_back(LandmarkObs{3, 0, -4});
+    noisy_observations.push_back(LandmarkObs{0, 2, 2});
+    noisy_observations.push_back(LandmarkObs{1, 3, -2});
+    noisy_observations.push_back(LandmarkObs{2, 0, -4});
 
     pf.updateWeights(sensor_range, sigma_landmark, noisy_observations, map);
 
