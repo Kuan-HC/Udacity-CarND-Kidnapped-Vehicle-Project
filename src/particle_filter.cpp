@@ -36,7 +36,9 @@ void ParticleFilter::init(const double &x, const double &y, const double &theta,
    */
 
   num_particles = value; // DONE: Set the number of particles
-  
+  weights.resize(num_particles);
+
+
   /* create particles */
   for (int i = 0; i < num_particles; ++i)
   {
@@ -56,7 +58,7 @@ void ParticleFilter::prediction(const double &delta_t, const double std_pos[], c
    *  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
    *  http://www.cplusplus.com/reference/random/default_random_engine/
    */
-  
+
   for (auto &particle_i : particles)
   {
     /* yaw raw equals 0 */
@@ -82,13 +84,27 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
                                      vector<LandmarkObs> &observations)
 {
   /**
-   * TODO: Find the predicted measurement that is closest to each 
+   * DONE: Find the predicted measurement that is closest to each 
    *   observed measurement and assign the observed measurement to this 
    *   particular landmark.
    * NOTE: this method will NOT be called by the grading code. But you will 
    *   probably find it useful to implement this method and use it as a helper 
    *   during the updateWeights phase.
    */
+
+  for (auto &observ_1 : observations)
+  {
+    double min_dist = std::numeric_limits<float>::max();
+    for (const auto &predict_i : predicted)
+    {
+      double tmp_dist = dist(observ_1.x, observ_1.y, predict_i.x, predict_i.y);
+      if (min_dist > tmp_dist)
+      {
+        min_dist = tmp_dist;
+        observ_1.id = predict_i.id;
+      }
+    }
+  }
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
@@ -108,6 +124,66 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   and the following is a good resource for the actual equation to implement
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */
+
+  /* 
+      Steps:
+      1. filter out the landmarks can not be seen from a specific particle, create a new vector stores detectable landmarks 
+      2. fram transformation: from vehicle coordinates -> map coordinates
+         Xmap = Xparticle + cos(theta) * Xcar - sin(theta) * Ycar
+         Ymap = Yparticle + sin(theta) * Xcar + cos(theta) * Ycar
+      3. Association part landmark to nearest observation
+      4. Calculate the Particle's weight
+   */
+
+  for (auto &particle_i : particles)
+  {
+    // Step 1 Select Landmarks
+    vector<LandmarkObs> mark_avl;
+    for (const auto &mark_i : map_landmarks.landmark_list)
+    {
+      double tmp_dist = dist(particle_i.x, particle_i.y, mark_i.x_f, mark_i.y_f);
+      if (tmp_dist <= sensor_range)
+        mark_avl.emplace_back(LandmarkObs{mark_i.id_i, mark_i.x_f, mark_i.y_f});
+    }
+    // End of Step 1
+
+    // Step 2 Transormations
+    vector<LandmarkObs> transed_observ;
+    double tmp_cos_theta = cos(particle_i.theta);
+    double tmp_sin_theta = sin(particle_i.theta);
+
+    for (const auto &observ_i : observations)
+    {
+      double transed_x = particle_i.x + tmp_cos_theta * observ_i.x - tmp_sin_theta * observ_i.y;
+      double transed_y = particle_i.y + tmp_sin_theta * observ_i.x + tmp_cos_theta * observ_i.y;
+      LandmarkObs tmp_transed;
+      tmp_transed.id = -1; // set id to -1 for better readability in assiciation step
+      tmp_transed.x = transed_x;
+      tmp_transed.y = transed_y;
+      transed_observ.emplace_back(tmp_transed);
+    }
+    // End of Step 2
+
+    // step 3 Association
+    dataAssociation(mark_avl, transed_observ);
+    // End of Step 3
+
+    // Step 4 Weight Calculate
+    double gauss_norm = 1 / (2 * M_PI * std_landmark[0] * std_landmark[1]);
+    for (const auto &t_observ_i : transed_observ)
+    {
+      double exponent = pow(t_observ_i.x - map_landmarks.landmark_list[t_observ_i.id].x_f, 2) / (2 * pow(std_landmark[0], 2))
+                      + pow(t_observ_i.y - map_landmarks.landmark_list[t_observ_i.id].y_f, 2) / (2 * pow(std_landmark[1], 2));
+      double weight = gauss_norm * exp(-exponent);
+      particle_i.weight *= weight;
+    }
+    // End of Step 4
+
+    // step 5 Update Weight
+    weights[particle_i.id] = particle_i.weight;
+  }
+  
+  std::cout << "test" << std::endl;
 }
 
 void ParticleFilter::resample()
