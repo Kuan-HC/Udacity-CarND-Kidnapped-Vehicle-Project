@@ -133,7 +133,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   weights.clear();
 
   for (auto &particle_i : particles)
-  {
+  {     
     // Step 1 Select Landmarks
     vector<LandmarkObs> mark_avl;
     for (const auto &mark_i : map_landmarks.landmark_list)
@@ -163,15 +163,16 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     // End of Step 3
 
     // Step 4 Weight Calculate
-    particle_i.weight = 1.0;     
+    particle_i.weight = 1.0; 
     double gauss_norm = 1 / (2 * M_PI * std_landmark[0] * std_landmark[1]);
     for (const auto &t_observ_i : transed_observ)
     {
-      double exponent = pow(t_observ_i.x - map_landmarks.landmark_list[t_observ_i.id].x_f, 2) / (2 * pow(std_landmark[0], 2))
-                      + pow(t_observ_i.y - map_landmarks.landmark_list[t_observ_i.id].y_f, 2) / (2 * pow(std_landmark[1], 2));
+      double exponent = pow(t_observ_i.x - map_landmarks.landmark_list[t_observ_i.id - 1].x_f, 2) / (2 * pow(std_landmark[0], 2))
+                      + pow(t_observ_i.y - map_landmarks.landmark_list[t_observ_i.id - 1].y_f, 2) / (2 * pow(std_landmark[1], 2));
       double weight = gauss_norm * exp(-exponent);
       particle_i.weight *= weight;
     }
+    
     // End of Step 4
 
     // step 5 Update Weight
