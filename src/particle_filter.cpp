@@ -163,6 +163,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     // End of Step 3
 
     // Step 4 Weight Calculate
+    particle_i.weight = 1.0;     
     double gauss_norm = 1 / (2 * M_PI * std_landmark[0] * std_landmark[1]);
     for (const auto &t_observ_i : transed_observ)
     {
