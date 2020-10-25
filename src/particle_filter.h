@@ -121,6 +121,9 @@ private:
 
   // Vector of weights of all particles
   std::vector<double> weights;
+
+  // Gaussian probability witn mean and variance
+  double gaussRandom(const double &mean, const double mu);
 };
 
 #endif // PARTICLE_FILTER_H_

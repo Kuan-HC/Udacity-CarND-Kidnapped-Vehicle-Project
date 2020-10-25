@@ -19,7 +19,7 @@ int main()
     particle_i.x += velocity * (sin(particle_i.theta + yaw_rate * delta_t) - sin(particle_i.theta)) / yaw_rate;
     particle_i.y += velocity * (cos(particle_i.theta) - cos(particle_i.theta + yaw_rate * delta_t)) / yaw_rate;
     particle_i.theta += yaw_rate * delta_t;
-/* particle_i.x 97.59 particle_i.y 75.08 particle_i.theta 2.002700*/
+/* result shall be :particle_i.x 97.59 particle_i.y 75.08 particle_i.theta 2.002700*/
 #endif
 
     // Create particle filter

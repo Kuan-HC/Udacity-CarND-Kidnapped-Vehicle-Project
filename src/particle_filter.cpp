@@ -22,6 +22,7 @@ using std::string;
 using std::vector;
 
 static const float EPSINON = 0.00001;
+static std::default_random_engine gen;
 
 void ParticleFilter::init(const double &x, const double &y, const double &theta, const double std[], int value)
 {
@@ -35,19 +36,11 @@ void ParticleFilter::init(const double &x, const double &y, const double &theta,
    */
 
   num_particles = value; // DONE: Set the number of particles
-  double std_x = std[0];
-  double std_y = std[1];
-  double std_theta = std[2];
-
-  std::default_random_engine gen;
-  std::normal_distribution<double> dist_x(x, std_x);
-  std::normal_distribution<double> dist_y(y, std_y);
-  std::normal_distribution<double> dist_theta(theta, std_theta);
-
+  
   /* create particles */
   for (int i = 0; i < num_particles; ++i)
   {
-    Particle temp{i, dist_x(gen), dist_y(gen), dist_theta(gen), 1};
+    Particle temp{i, gaussRandom(x, std[0]), gaussRandom(y, std[1]), gaussRandom(theta, std[2]), 1};
     particles.emplace_back(temp);
   }
 
@@ -57,22 +50,13 @@ void ParticleFilter::init(const double &x, const double &y, const double &theta,
 void ParticleFilter::prediction(const double &delta_t, const double std_pos[], const double &velocity, const double &yaw_rate)
 {
   /**
-   * TODO: Add measurements to each particle and add random Gaussian noise.
+   * DONE: Add measurements to each particle and add random Gaussian noise.
    * NOTE: When adding noise you may find std::normal_distribution 
    *   and std::default_random_engine useful.
    *  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
    *  http://www.cplusplus.com/reference/random/default_random_engine/
    */
-
-  double std_x = std_pos[0];
-  double std_y = std_pos[1];
-  double std_theta = std_pos[2];
-
-  std::default_random_engine gen;
-  std::normal_distribution<double> dist_x(0.0, std_x);
-  std::normal_distribution<double> dist_y(0.0, std_y);
-  std::normal_distribution<double> dist_theta(0.0, std_theta);
-
+  
   for (auto &particle_i : particles)
   {
     /* yaw raw equals 0 */
@@ -88,9 +72,9 @@ void ParticleFilter::prediction(const double &delta_t, const double std_pos[], c
       particle_i.theta += yaw_rate * delta_t;
     }
     /* adding Gaussian noise to each particleposition */
-    particle_i.x += dist_x(gen);
-    particle_i.y += dist_y(gen);
-    particle_i.theta += dist_theta(gen);
+    particle_i.x += gaussRandom(0.0, std_pos[0]);
+    particle_i.y += gaussRandom(0.0, std_pos[1]);
+    particle_i.theta += gaussRandom(0.0, std_pos[2]);
   }
 }
 
@@ -179,4 +163,10 @@ string ParticleFilter::getSenseCoord(Particle best, string coord)
   string s = ss.str();
   s = s.substr(0, s.length() - 1); // get rid of the trailing space
   return s;
+}
+
+double ParticleFilter::gaussRandom(const double &mean, const double mu)
+{
+  std::normal_distribution<double> gauss_dist(mean, mu);
+  return gauss_dist(gen);
 }
