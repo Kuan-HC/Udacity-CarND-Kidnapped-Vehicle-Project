@@ -14,7 +14,7 @@ static double sigma_pos[3] = {0.3, 0.3, 0.01};
 // Landmark measurement uncertainty [x [m], y [m]]
 static double sigma_landmark[2] = {0.3, 0.3};
 
-static double sensor_range = 4; // Sensor range [m]
+static double sensor_range = 10; // Sensor range [m]
 
 int main()
 {
@@ -79,12 +79,11 @@ int main()
     }
 
 #endif
-
     // Create particle filter
     ParticleFilter pf;
 
     //initialize particle
-    pf.init(4.0, 5.0, -M_PI / 2, sigma_pos, 5);
+    pf.init(4.0, 5.0, -M_PI / 2, sigma_pos, 10);
 
     /* move yaw rate 0*/
     pf.prediction(0.1, sigma_pos, 0.2, 0.0);
@@ -105,6 +104,8 @@ int main()
     noisy_observations.push_back(LandmarkObs{3, 0, -4});
 
     pf.updateWeights(sensor_range, sigma_landmark, noisy_observations, map);
+
+    pf.resample();
 
     return 0;
 }
