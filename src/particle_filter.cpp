@@ -200,7 +200,7 @@ void ParticleFilter::resample()
     int index = rand(gen);
     resampled_particles.emplace_back(particles[index]);
   }
-  particles = resampled_particles;
+  particles = std::move(resampled_particles);
 }
 
 void ParticleFilter::SetAssociations(Particle &particle,
